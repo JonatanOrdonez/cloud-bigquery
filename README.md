@@ -49,6 +49,81 @@ El siguiente paso es crear un Notebook para trabajar nuestra ETL. Para ello, pre
 
 ![Opción S3 Aws](./img/img_7.png)
 
-Ingresaremos el nombre del Notebook, un lenguaje de programación y el cluster que hemos creado en pasos anteriores. Finalizamos la creación haciendo clic en el botón **Create**.
+En el formulario ingresaremos el nombre del Notebook, el lenguaje de programación y el cluster que hemos creado en los pasos anteriores. Finalizamos la creación haciendo clic en el botón **Create**.
 
-3. Link del dataset: https://storage.googleapis.com/covid19-open-data/v2/main.csv
+Una vez creado el Notebook, vamos a ejecutar los siguientes comandos para crear la ETL.
+
+Para leer el dataset **covid19-open-data**, ejecutaremos el siguiente código para descargar el archivo del siguiente [link](https://storage.googleapis.com/covid19-open-data/v2/main.csv):
+
+```
+url = "https://storage.googleapis.com/covid19-open-data/v2/main.csv"
+
+from pyspark import SparkFiles
+spark.sparkContext.addFile(url)
+
+df = spark.read.csv("file://"+SparkFiles.get("main.csv"), header=True, inferSchema= True)
+```
+
+Una vez leído el archivo y cargado en un dataframe de Spark, crearemos una unidad de montaje a nuestro bucket de S3, que no es más que una referencia a nuestro sistema de almacenamiento:
+
+```
+access_key = "XXXXXXXXXXXXXXX"
+secret_key = "XXXXXXXXXXXXX"
+encoded_secret_key = secret_key.replace("/", "%2F")
+aws_bucket_name = "<bucket_name>"
+mount_name = "<folder_name>"
+
+dbutils.fs.mount(source = "s3a://%s:%s@%s" % (access_key, encoded_secret_key, aws_bucket_name), mount_point = "/mnt/%s" % mount_name)
+```
+
+Ahora ejecutaremos el siguiente código para guardar el dataframe en nuestro bucket:
+
+```
+out = "/mnt/<folder_name>/<s3_folder>"
+df.write.option("header","true").csv(out)
+```
+
+Una vez se ha ejecutado todo el código del Notebook, nuestro bucket de S3 debería contener una carpeta con todos los archivos que Spark ha creado para el dataset.
+
+![Opción S3 Aws](./img/img_13.png)
+
+El Notebook creado puede accederse a través del siguiente [link](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/1368387989707308/2228990396878086/6696879192669646/latest.html).
+
+#### Obtener keys de acceso a Aws
+
+La creación de la unidad de montaje requiere de un **access key** y **secret key** para acceder al bucket de S3. Estos valores se pueden obtener ingresando a la consola de Aws, luego vamos a nuestro usuario en la parte superior derecha y seleccionamos la opción **My Security Credentiales**.
+
+![Opción S3 Aws](./img/img_9.png)
+
+Una vez en la página vamos a la sección **Access Key** y generamos un par de claves.
+
+![Opción S3 Aws](./img/img_10.png)
+
+### Reproducir consultas SQL con Databriks
+
+Ahora vamos a crear un nuevo Notebook en Databricks.
+
+Nuevamente vamos a crear una unidad de montaje para crear una referencia a nuestro bucket de S3. Esto lo podemos hacer con el siguiente código:
+
+```
+access_key = "XXXXXXXXXXXXXXX"
+secret_key = "XXXXXXXXXXXXX"
+encoded_secret_key = secret_key.replace("/", "%2F")
+aws_bucket_name = "<bucket_name>"
+mount_name = "<folder_name>"
+
+dbutils.fs.mount(source = "s3a://%s:%s@%s" % (access_key, encoded_secret_key, aws_bucket_name), mount_point = "/mnt/%s" % mount_name)
+```
+
+Una vez creada la unidad de montaje, vamos a leer los datos particionados que se almacenaron en el bucket de S3, con los siguientes comandos:
+
+```
+path = "/mnt/<folder_name>/<s3_folder>/"
+df = spark.read.format("csv").option("header", "true").load("%s/*" % path)
+```
+
+Ahora vamos a crear una vista temporal de nuestro dataframe usando el siguiente comando:
+
+```
+df.createOrReplaceTempView("<view_name>")
+```
