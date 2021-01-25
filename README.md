@@ -7,7 +7,7 @@ El proposito de este reporte es el de aplicar las tecnologías y procedimientos 
 1. Ejecutar una serie de consutlas SQL sobre los datos leídos.
 1. Conectar el aplicativo Power BI al sistema donde se ejecutaron las consultas, para permitir su visualización a través de los diferentes herramientas que provee este sistema de reportes.
 
-## 1. Creación de la ETL
+## Creación de la ETL
 
 Antes de crear la ETL para consumir los datos de la fuente covid19-open-data, debemos crear un contenedor de archivos para almacenar la información cuando ejecutemos el proceso de extracción. Para esta parte, se optó por utilizar un bucket de S3 en Aws, que permita almacenar la data.
 
@@ -31,7 +31,7 @@ Una vez creado el bucket, este nos debería aparecer en la lista de buckets exis
 
 ![Opción S3 Aws](./img/img_4.png)
 
-### Creación de la ETL con Databricks
+### Leer y guardar datos en Databricks
 
 Nos logearemos en la versión community de Databricks e iremos a la opción **Clusters** que se encuentra en la parte izquierda. Allí haremos clic en el botón **Create Cluster**.
 
@@ -89,7 +89,7 @@ Una vez se ha ejecutado todo el código del Notebook, nuestro bucket de S3 deber
 
 El Notebook creado puede accederse a través del siguiente [link](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/1368387989707308/2228990396878086/6696879192669646/latest.html).
 
-#### Obtener keys de acceso a Aws
+### Obtener keys de acceso a Aws
 
 La creación de la unidad de montaje requiere de un **access key** y **secret key** para acceder al bucket de S3. Estos valores se pueden obtener ingresando a la consola de Aws, luego vamos a nuestro usuario en la parte superior derecha y seleccionamos la opción **My Security Credentiales**.
 
@@ -99,7 +99,7 @@ Una vez en la página vamos a la sección **Access Key** y generamos un par de c
 
 ![Opción S3 Aws](./img/img_10.png)
 
-### Reproducir consultas SQL con Databriks
+## Reproducir consultas SQL con Databriks
 
 Ahora vamos a crear un nuevo Notebook en Databricks.
 
@@ -127,3 +127,51 @@ Ahora vamos a crear una vista temporal de nuestro dataframe usando el siguiente 
 ```
 df.createOrReplaceTempView("<view_name>")
 ```
+
+Por medio del siguiente código, vamos a consultar la cantidad de casos de COVID-19 a nivel mundial:
+
+```
+sqlDF = spark.sql("SELECT count(1) as CASOS_NIVEL_GLOBAL FROM covid LIMIT 10")
+sqlDF.show()
+```
+
+El código anterior debería imprimir una tabla como la que se mostrada a continuación:
+
+![Opción S3 Aws](./img/img_17.png)
+
+Con el siguiente código vamos a guardar la consulta (dataframe) en el sistema de almacenamiento interno de Spark:
+
+```
+out = "dbfs:/FileStore/<folder_name>/<file_name>.csv"
+sqlDF.write.format("com.databricks.spark.csv").option("header","true").csv(out)
+```
+
+El resto de las consultas pueden verse en el siguiente [link](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/1368387989707308/4244740782447881/6696879192669646/latest.html).
+
+## Creación de tablas en Databricks.
+
+Una vez hemos ejecutados las consultas y almacenado los resultados en el sistema de almacenamiento de Spark, vamos a crear tablas en Databriks para que Power BI pueda acceder a los resultados de las consultas.
+
+Para ello, vamos a hacer clic en la opción **Data** del menú de Databricks y luego haremos clic en el botón **Create Table**.
+
+![Opción S3 Aws](./img/img_19.png)
+
+En la página que nos carga a continuación, vamos a seleccionar como Data Source, la opción **DBFS**. Luego haremos clic en la opción FileStore > tables y haremos clic en uno de los archivos CSV que se encuentra en la carpeta.
+
+![Opción S3 Aws](./img/img_20.png)
+
+Una vez seleccionado el archivo, haremos clic en el botón **Create Table with UI** y seleccionaremos el cluster que creamos al inicio de este proceso.
+
+![Opción S3 Aws](./img/img_21.png)
+
+Luego haremos clic en **Preview Table** para ver la metadata de la tabla y algunas opciones para la creación de la tabla.
+
+![Opción S3 Aws](./img/img_22.png)
+
+**Nota:** Se ha marcado la opción **First row is header** ya que los archivos CSV fueron exportados con su respectivo encabezado. Finalizaremos este proceso haciendo clic en el botón **Create Table**.
+
+Repetiremos este proceso para los otros archivos. Ahora la opción **Data** de Databricks debería mostrar las tablas que hemos creado.
+
+![Opción S3 Aws](./img/img_23.png)
+
+## Visualización de las consultas en Power BI
