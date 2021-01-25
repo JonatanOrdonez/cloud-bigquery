@@ -10,6 +10,7 @@ El proposito de este reporte es el de aplicar las tecnologías y procedimientos 
 # Tabla de Contenido
 
 - [Computación en la Nube - Tarea 1](#computación-en-la-nube---tarea-1)
+- [Tabla de Contenido](#tabla-de-contenido)
   - [Creación de la ETL](#creación-de-la-etl)
     - [Creación del Bucket en Aws S3](#creación-del-bucket-en-aws-s3)
     - [Leer y guardar datos en Databricks](#leer-y-guardar-datos-en-databricks)
@@ -17,6 +18,9 @@ El proposito de este reporte es el de aplicar las tecnologías y procedimientos 
   - [Reproducir consultas SQL con Databriks](#reproducir-consultas-sql-con-databriks)
   - [Creación de tablas en Databricks.](#creación-de-tablas-en-databricks)
   - [Visualización de las consultas en Power BI](#visualización-de-las-consultas-en-power-bi)
+    - [Instalación Power BI](#instalación-power-bi)
+    - [Obtener HostName y HTTP Path de Databricks](#obtener-hostname-y-http-path-de-databricks)
+    - [Visualizar consultas en Power BI Desktop](#visualizar-consultas-en-power-bi-desktop)
 
 ## Creación de la ETL
 
@@ -186,3 +190,63 @@ Repetiremos este proceso para los otros archivos. Ahora la opción **Data** de D
 ![Opción S3 Aws](./img/img_23.png)
 
 ## Visualización de las consultas en Power BI
+
+### Instalación Power BI
+
+Vamos a descargar la versión de escritorio de Power Bi, para visualizar nuestras consultas SQL. Para ello, ingresaremos al siguiente [link](https://powerbi.microsoft.com/es-es/desktop) y haremos clic en el botón **Descargar gratis**.
+
+Una vez descargada la aplicación, vamos a iniciarla. Nos debería aparecer una vista como la que se mostrará a continuación:
+
+![Opción S3 Aws](./img/img_15.png)
+
+Haremos clic en la opción **Get Data** del menú superior. Nos debería mostrar el siguiente modal emergente:
+
+![Opción S3 Aws](./img/img_24.png)
+
+Allí, haremos clic en la opción Azure > Azure Databricks y luego en el botón **Connect**.
+
+En el siguiente cuadro, vamos a ingresar los campos **Server HostName** y **HTTP Path**.
+
+![Opción S3 Aws](./img/img_25.png)
+
+A continuación mostraremos como obtener estos valores de Databricks.
+
+### Obtener HostName y HTTP Path de Databricks
+
+Ingresaremos al panel de Databricks y haremos clic en la opción **Clusters**, luego haremos clic en nuestro cluster y se nos mostrarán los detalles del cluster. En la parte inferior haremos clic en la opción JDBC/ODBC.
+
+![Opción S3 Aws](./img/img_16.png)
+
+Aquí podemos encontrar el **Server HostName** y **HTTP Path** de nuestro cluster.
+
+### Visualizar Consultas en Power BI Desktop
+
+Continuando con la visualización en Power BI, ingresaremos el **Server HostName** y **HTTP Path** y vamos a hacer clic en el botón **OK**.
+
+Nos debería aparecer un panel con las tablas que habíamos creado en el punto anterior. Vamos a seleccionarlas todas y haremos clic en el botón **Load**.
+
+![Opción S3 Aws](./img/img_26.png)
+
+Una vez cargadas las tablas, vamos a seleccionar el elemento **Table** del menú **Visualization** y lo arrastraremos hasta la página en blanco.
+
+En la parte derecha podemos ver el menú **Fields**, que contienen las tablas que hemos cargado en Power BI. Vamos a hacer clic en la tabla que hemos arrastrado al lienzo y seleccionaremos todos los campos de una de las tablas.
+
+![Opción S3 Aws](./img/img_29.png)
+
+Ahora en el lienzo debería mostrarse la información de la consulta.
+
+Repetiremos este proceso para todos los campos de las tablas que hemos cargado de Databricks. El resultado debería ser el siguiente:
+
+![Opción S3 Aws](./img/img_28.png)
+
+Una vez completado este procedimiento, vamos a publicar el lienzo en nuestra versión web de Power BI. Para ello, haremos clic en la opción **Publish** del menú superior.
+
+Una vez autenticados, nos debería mostrar un modal como el siguiente, indicando que los cambios se estan publicando.
+
+![Opción S3 Aws](./img/img_30.png)
+
+Una vez finalizado este paso, podemos ver que se nos abre una página web en nuestro navegador, con el contenido que hemos creado.
+
+![Opción S3 Aws](./img/img_31.png)
+
+Esto nos indica que nuestros cambios se han subido a la versión web de Power BI.
