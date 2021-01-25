@@ -16,7 +16,7 @@ El proposito de este reporte es el de aplicar las tecnologías y procedimientos 
     - [Leer y guardar datos en Databricks](#leer-y-guardar-datos-en-databricks)
     - [Obtener keys de acceso a Aws](#obtener-keys-de-acceso-a-aws)
   - [Reproducir consultas SQL con Databriks](#reproducir-consultas-sql-con-databriks)
-  - [Creación de tablas en Databricks.](#creación-de-tablas-en-databricks)
+  - [Creación de tablas en Databricks](#creación-de-tablas-en-databricks)
   - [Visualización de las consultas en Power BI](#visualización-de-las-consultas-en-power-bi)
     - [Instalación Power BI](#instalación-power-bi)
     - [Obtener HostName y HTTP Path de Databricks](#obtener-hostname-y-http-path-de-databricks)
@@ -163,7 +163,7 @@ sqlDF.write.format("com.databricks.spark.csv").option("header","true").csv(out)
 
 El resto de las consultas pueden verse en el siguiente [link](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/1368387989707308/4244740782447881/6696879192669646/latest.html).
 
-## Creación de tablas en Databricks.
+## Creación de tablas en Databricks
 
 Una vez hemos ejecutados las consultas y almacenado los resultados en el sistema de almacenamiento de Spark, vamos a crear tablas en Databriks para que Power BI pueda acceder a los resultados de las consultas.
 
