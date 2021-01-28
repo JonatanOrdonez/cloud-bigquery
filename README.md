@@ -1,11 +1,11 @@
 # Computación en la Nube - Tarea 1
 
-El proposito de este reporte es el de aplicar las tecnologías y procedimientos aprendidos en la materia de Computación en la Nube, por medio de la ejecución de las siguientes tareas:
+El propósito de este reporte es aplicar las tecnologías y procedimientos aprendidos en la materia Computación en la Nube, y ejecutar los siguientes procedimientos:
 
-1. Construir de una ETL que permita leer los datos del sistema de archivos. **covid19-open-data** y lmacenarlos en un sistema de almacenamiento propio (BlobStorage/s3).
-1. Leer los datos extraidos en el sistema de almacenamiento, usando tecnologías como Databricks o Aws Athena.
-1. Ejecutar una serie de consutlas SQL sobre los datos leídos.
-1. Conectar el aplicativo Power BI al sistema donde se ejecutaron las consultas, para permitir su visualización a través de los diferentes herramientas que provee este sistema de reportes.
+1. Construir de una ETL que permita leer los datos de la base **covid19-open-data** y almacenarlos en un sistema de almacenamiento propio (BlobStorage/s3).
+1. Leer los datos extraídos en el sistema de almacenamiento propio, usando tecnologías como Databricks o Aws Athena.
+1. Ejecutar un conjunto de consutlas SQL sobre los datos extraídos.
+1. Conectar Power BI al sistema donde fueron ejecutadas las consultas, para permitir su visualización.
 
 # Tabla de Contenido
 
@@ -28,7 +28,7 @@ Antes de crear la ETL para consumir los datos de la fuente covid19-open-data, de
 
 ### Creación del Bucket en Aws S3
 
-Ingresaremos a la consola de Aws y buscaremos S3 en la barra de busqueda de la página (parte superior). Luego haremos clic en el primer servicio que se muestra en la lista.
+Ingresaremos a la consola de Aws y en la barra de búsqueda ingresaremos el nombre S3; luego haremos clic en el primer servicio que se muestra en la lista.
 
 ![Opción S3 Aws](./img/img_0.png)
 
@@ -36,50 +36,56 @@ Una vez ingresemos al portal de S3, vamos a hacer clic en el botón **Create Buc
 
 ![Opción S3 Aws](./img/img_1.png)
 
-Este botón nos llevará a un formulario. En el campo **Bucket name** ingresaremos el nombre que deseemos para nuestro bucket y finalizaremos la creación presionando el botón **Create Bucket** que se muestra al final del formulario.
+Este botón nos llevará a un formulario para la creación del bucket. Una vez allí, ingresaremos el nombre del bucket en el campo **Bucket name** y finalizaremos la creación presionando el botón **Create Bucket** que se muestra al final del formulario.
 
 ![Opción S3 Aws](./img/img_2.png)
 
 ![Opción S3 Aws](./img/img_3.png)
 
-Una vez creado el bucket, este nos debería aparecer en la lista de buckets existentes.
+Una vez creado el bucket, nos debería aparecer un nuevo registro en la lista de buckets existentes.
 
 ![Opción S3 Aws](./img/img_4.png)
 
 ### Leer y guardar datos en Databricks
 
-Nos logearemos en la versión community de Databricks e iremos a la opción **Clusters** que se encuentra en la parte izquierda. Allí haremos clic en el botón **Create Cluster**.
+Una vez hemos creado el bucket, ingresaremos a la página de Databricks Community e iniciaremos sesión con nuestro usuario y contraseña.
+
+En la página principal haremos clic en la opción **Clusters** del menú principal y luego presionaremos el botón **Create Cluster** para crear nuestra infraestructura de procesamiento.
 
 ![Opción S3 Aws](./img/img_5.png)
 
-Se nos mostrará un formulario para la creación del cluster. En el campo **Cluster Name** ingresaremos el nombre que deseemos para nuestro cluster. Las demás opciones no las modificaremos. Finalizaremos este proceso presionando el botón **Create Cluster**.
+A continuación, se nos mostrara un formulario para la creación del cluster. En el campo **Cluster Name** ingresaremos el nombre que deseemos para nuestro cluster. Las demás opciones no las modificaremos para este caso de uso. Finalizaremos este proceso presionando el botón **Create Cluster** que aparece en la parte superior.
 
 ![Opción S3 Aws](./img/img_6.png)
 
-Una vez finalizada la creación, el cluster nos debería aparecer en la lista mostrada a continuación.
+Una vez finalizada la creación del cluster, nos aparecerá un nuevo registro en la lista de clusters.
 
 ![Opción S3 Aws](./img/img_6_1.png)
 
-El siguiente paso es crear un Notebook para trabajar nuestra ETL. Para ello, presionaremos en el logo de Databricks para acceder a la página inicial y presionaremos la opción **New Notebook**.
+El siguiente paso es crear un Notebook que será nuestro espacio de trabajo para la ETL. Para ello, presionaremos en el logo de Databricks que nos llevará a la página principal y haremos clic en la opción **New Notebook**.
 
 ![Opción S3 Aws](./img/img_7.png)
 
-En el formulario ingresaremos el nombre del Notebook, el lenguaje de programación y el cluster que hemos creado en los pasos anteriores. Finalizamos la creación haciendo clic en el botón **Create**.
+En el formulario que se abrirá a continuación, ingresaremos el nombre del Notebook, el lenguaje de programación con el cual deseemos trabajar y seleccionaremos el cluster que hemos creado. Finalizaremos la creación haciendo clic en el botón **Create**.
 
-Una vez creado el Notebook, vamos a ejecutar los siguientes comandos para crear la ETL.
+Una vez estemos en nuestro nuevo Notebook, vamos a agregaremos los siguientes comandos para crear la ETL:
 
-Para leer el dataset **covid19-open-data**, ejecutaremos el siguiente código para descargar el archivo del siguiente [link](https://storage.googleapis.com/covid19-open-data/v2/main.csv):
+- Para leer el dataset **covid19-open-data**, ejecutaremos el siguiente código para descargar el archivo del siguiente [link](https://storage.googleapis.com/covid19-open-data/v2/main.csv):
 
 ```
 url = "https://storage.googleapis.com/covid19-open-data/v2/main.csv"
 
 from pyspark import SparkFiles
 spark.sparkContext.addFile(url)
+```
 
+- Una vez hemos leído el archivo desde nuestra fuente de datos, vamos a cargarlo en un dataframe de Spark.
+
+```
 df = spark.read.csv("file://"+SparkFiles.get("main.csv"), header=True, inferSchema= True)
 ```
 
-Una vez leído el archivo y cargado en un dataframe de Spark, crearemos una unidad de montaje a nuestro bucket de S3, que no es más que una referencia a nuestro sistema de almacenamiento:
+- Para tener acceso a nuestro bucket de S3, crearemos una unidad de montaje que nos permitirá tener referencia a nuestro sistema de almacenamiento:
 
 ```
 access_key = "XXXXXXXXXXXXXXX"
@@ -91,34 +97,38 @@ mount_name = "<folder_name>"
 dbutils.fs.mount(source = "s3a://%s:%s@%s" % (access_key, encoded_secret_key, aws_bucket_name), mount_point = "/mnt/%s" % mount_name)
 ```
 
-Ahora ejecutaremos el siguiente código para guardar el dataframe en nuestro bucket:
+- Ahora ejecutaremos el siguiente código para guardar el dataframe en nuestro bucket:
 
 ```
 out = "/mnt/<folder_name>/<s3_folder>"
 df.write.option("header","true").csv(out)
 ```
 
-Una vez se ha ejecutado todo el código del Notebook, nuestro bucket de S3 debería contener una carpeta con todos los archivos que Spark ha creado para el dataset.
+- Una vez se ha ejecutado todos los pasos anteriores, tendremos nuestros archivos en el bucket de S3.
 
 ![Opción S3 Aws](./img/img_13.png)
 
-El Notebook creado puede accederse a través del siguiente [link](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/1368387989707308/2228990396878086/6696879192669646/latest.html).
+El Notebook que contiene los códigos anteriores puede accederse a través del siguiente [link](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/1368387989707308/2228990396878086/6696879192669646/latest.html).
 
 ### Obtener keys de acceso a Aws
 
-La creación de la unidad de montaje requiere de un **access key** y **secret key** para acceder al bucket de S3. Estos valores se pueden obtener ingresando a la consola de Aws, luego vamos a nuestro usuario en la parte superior derecha y seleccionamos la opción **My Security Credentiales**.
+La creación de la unidad de montaje en el paso anterior, requiere de un **access key** y **secret key** para tener acceso al bucket de S3. Estos valores se pueden obtener a través de la consola de Aws, ingresando a la opción de **My Security Credentiales** que aparece en el menú desplegable cuando hacemos clic en nuestro usuario.
 
 ![Opción S3 Aws](./img/img_9.png)
 
-Una vez en la página vamos a la sección **Access Key** y generamos un par de claves.
+Una vez hemos ingresado en la página, iremos a la sección **Access Keys** y haremos clic en el botón **Create New Access Key** para generar un par de claves.
 
 ![Opción S3 Aws](./img/img_10.png)
 
+A continuación, se mostrará un modal con el par de claves y este nos mostrará la opción de descargar un archivo con la información.
+
 ## Reproducir consultas SQL con Databriks
 
-Ahora vamos a crear un nuevo Notebook en Databricks.
+Para este paso, vamos a crear un nuevo Notebook en Databricks, para ejecutar las consultas.
 
-Nuevamente vamos a crear una unidad de montaje para crear una referencia a nuestro bucket de S3. Esto lo podemos hacer con el siguiente código:
+Los pasos a seguir son los siguientes:
+
+- Primero, crearemos una unidad de montaje para tener acceso a al bucket de S3 que contiene los archivos que almacenó la ETL. Esto lo podemos hacer con el siguiente código:
 
 ```
 access_key = "XXXXXXXXXXXXXXX"
@@ -130,62 +140,64 @@ mount_name = "<folder_name>"
 dbutils.fs.mount(source = "s3a://%s:%s@%s" % (access_key, encoded_secret_key, aws_bucket_name), mount_point = "/mnt/%s" % mount_name)
 ```
 
-Una vez creada la unidad de montaje, vamos a leer los datos particionados que se almacenaron en el bucket de S3, con los siguientes comandos:
+- Una vez creada la unidad de montaje, leeremos los archivos que se encuentran en el bucket, a través de los siguientes comandos:
 
 ```
 path = "/mnt/<folder_name>/<s3_folder>/"
 df = spark.read.format("csv").option("header", "true").load("%s/*" % path)
 ```
 
-Ahora vamos a crear una vista temporal de nuestro dataframe usando el siguiente comando:
+- Ahora crearemos una vista SQL temporal a partir de nuestro dataframe:
 
 ```
 df.createOrReplaceTempView("<view_name>")
 ```
 
-Por medio del siguiente código, vamos a consultar la cantidad de casos de COVID-19 a nivel mundial:
+- Con el siguiente comando ejecutaremos una de las consultas SQL requeridas, la cual consiste en obtenerla cantidad de casos de COVID-19 a nivel mundial:
 
 ```
 sqlDF = spark.sql("SELECT count(1) as CASOS_NIVEL_GLOBAL FROM covid LIMIT 10")
 sqlDF.show()
 ```
 
-El código anterior debería imprimir una tabla como la que se mostrada a continuación:
+- El código anterior debería imprimir una tabla como la que se mostrará a continuación:
 
 ![Opción S3 Aws](./img/img_17.png)
 
-Con el siguiente código vamos a guardar la consulta (dataframe) en el sistema de almacenamiento interno de Spark:
+- Finalizaremos la consulta, guardándola la consulta (dataframe) en el sistema de almacenamiento interno de Spark, usando el siguiente comando:
 
 ```
 out = "dbfs:/FileStore/<folder_name>/<file_name>.csv"
 sqlDF.write.format("com.databricks.spark.csv").option("header","true").csv(out)
 ```
 
-El resto de las consultas pueden verse en el siguiente [link](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/1368387989707308/4244740782447881/6696879192669646/latest.html).
+El resto de las consultas pueden verse en el Notebook de Databriks [link](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/1368387989707308/4244740782447881/6696879192669646/latest.html).
 
 ## Creación de tablas en Databricks
 
-Una vez hemos ejecutados las consultas y almacenado los resultados en el sistema de almacenamiento de Spark, vamos a crear tablas en Databriks para que Power BI pueda acceder a los resultados de las consultas.
+Una vez hemos ejecutados las consultas y hemos almacenado los resultados en el sistema de almacenamiento de Spark, vamos a crear tablas en Databriks, que serán accesibles a través de Power BI.
 
-Para ello, vamos a hacer clic en la opción **Data** del menú de Databricks y luego haremos clic en el botón **Create Table**.
+- Para ello, vamos a hacer clic en la opción **Data** del menú principal de Databricks y luego haremos clic en el botón **Create Table**.
 
 ![Opción S3 Aws](./img/img_19.png)
 
-En la página que nos carga a continuación, vamos a seleccionar como Data Source, la opción **DBFS**. Luego haremos clic en la opción FileStore > tables y haremos clic en uno de los archivos CSV que se encuentra en la carpeta.
+- En la página que se carga a continuación, seleccionaremos la opción **DBFS**, luego haremos clic en la opción FileStore > tables y finalizaremos haciendo clic en cualquiera de archivos CSV que se encuentra en la carpeta.
 
 ![Opción S3 Aws](./img/img_20.png)
 
-Una vez seleccionado el archivo, haremos clic en el botón **Create Table with UI** y seleccionaremos el cluster que creamos al inicio de este proceso.
+- Una vez seleccionado el archivo CSV, haremos clic en el botón **Create Table with UI** y buscaremos el cluster que creamos al inicio de este proceso.
 
 ![Opción S3 Aws](./img/img_21.png)
 
-Luego haremos clic en **Preview Table** para ver la metadata de la tabla y algunas opciones para la creación de la tabla.
+- Luego haremos clic en **Preview Table** para ver la metadata de la tabla y algunas opciones para la creación de la tabla.
 
 ![Opción S3 Aws](./img/img_22.png)
 
-**Nota:** Se ha marcado la opción **First row is header** ya que los archivos CSV fueron exportados con su respectivo encabezado. Finalizaremos este proceso haciendo clic en el botón **Create Table**.
+**Nota:** Se ha marcado la opción **First row is header** ya que los archivos CSV fueron exportados con su respectivo encabezado.
 
-Repetiremos este proceso para los otros archivos. Ahora la opción **Data** de Databricks debería mostrar las tablas que hemos creado.
+Finalizaremos este proceso haciendo clic en el botón **Create Table** y repetiremos este proceso para los otros archivos.
+
+Ahora podemos ver que el menú **Data** contiene la lista de tablas que hemos creado.
 
 ![Opción S3 Aws](./img/img_23.png)
 
@@ -193,13 +205,13 @@ Repetiremos este proceso para los otros archivos. Ahora la opción **Data** de D
 
 ### Instalación Power BI
 
-Vamos a descargar la versión de escritorio de Power Bi, para visualizar nuestras consultas SQL. Para ello, ingresaremos al siguiente [link](https://powerbi.microsoft.com/es-es/desktop) y haremos clic en el botón **Descargar gratis**.
+Lo primero que haremos es descargar la versión de escritorio de Power, que podremos bajar a través del siguiente [link](https://powerbi.microsoft.com/es-es/desktop)
 
-Una vez descargada la aplicación, vamos a iniciarla. Nos debería aparecer una vista como la que se mostrará a continuación:
+Una vez descargada la aplicación, vamos a iniciarla y nos debería aparecer la siguiente visualización:
 
 ![Opción S3 Aws](./img/img_15.png)
 
-Haremos clic en la opción **Get Data** del menú superior. Nos debería mostrar el siguiente modal emergente:
+Haremos clic en la opción **Get Data** del menú superior, la cual, nos abrirá el siguiente modal:
 
 ![Opción S3 Aws](./img/img_24.png)
 
@@ -209,44 +221,50 @@ En el siguiente cuadro, vamos a ingresar los campos **Server HostName** y **HTTP
 
 ![Opción S3 Aws](./img/img_25.png)
 
-A continuación mostraremos como obtener estos valores de Databricks.
+A continuación, mostraremos como podemos obtener estos valores de Databricks.
 
 ### Obtener HostName y HTTP Path de Databricks
 
-Ingresaremos al panel de Databricks y haremos clic en la opción **Clusters**, luego haremos clic en nuestro cluster y se nos mostrarán los detalles del cluster. En la parte inferior haremos clic en la opción JDBC/ODBC.
+Una vez en la página principal de Databricks, seleccionaremos la opción **Clusters** del menú principal, la cual nos abrirá una lista de clusters.
 
-![Opción S3 Aws](./img/img_16.png)
+Allí haremos harémos clic en el cluster con el cual hemos trabajado y a continuación nos aparecerá su información detallada.
+
+En la parte inferior de la información detallada haremos clic en la opción JDBC/ODBC y nos aparecerán varias credenciales de acceso al cluster.
 
 Aquí podemos encontrar el **Server HostName** y **HTTP Path** de nuestro cluster.
 
+![Opción S3 Aws](./img/img_16.png)
+
 ### Visualizar Consultas en Power BI Desktop
 
-Continuando con la visualización en Power BI, ingresaremos el **Server HostName** y **HTTP Path** y vamos a hacer clic en el botón **OK**.
+Continuando con la visualización en Power BI, ingresaremos el **Server HostName** y **HTTP Path** y haremos clic en el botón **OK**.
 
-Nos debería aparecer un panel con las tablas que habíamos creado en el punto anterior. Vamos a seleccionarlas todas y haremos clic en el botón **Load**.
+Nos debería aparecer un panel con las tablas que habíamos creado manualmente en Databricks.
+
+Vamos a seleccionar todas las tablas y haremos clic en el botón **Load**.
 
 ![Opción S3 Aws](./img/img_26.png)
 
-Una vez cargadas las tablas, vamos a seleccionar el elemento **Table** del menú **Visualization** y lo arrastraremos hasta la página en blanco.
+Una vez cargadas las tablas, seleccionaremos el elemento **Table** del menú **Visualization** (sección derecha) y lo arrastraremos hacia nuestro lienzo de trabajo.
 
-En la parte derecha podemos ver el menú **Fields**, que contienen las tablas que hemos cargado en Power BI. Vamos a hacer clic en la tabla que hemos arrastrado al lienzo y seleccionaremos todos los campos de una de las tablas.
+En la parte derecha podemos ver que el menú **Fields** contiene las tablas que hemos cargado previamente. Vamos a hacer clic en una de las tablas y esta nos desplegará un menú con los campos que contiene.
+
+Haremos clic en la tabla que se encuentra en el lienzo y también en los atributos de una de las tablas del campo **Fields**. A continuación, la tabla del lienzo nos debería mostrar la información asociada al Datasource que hemos seleccionado.
 
 ![Opción S3 Aws](./img/img_29.png)
-
-Ahora en el lienzo debería mostrarse la información de la consulta.
 
 Repetiremos este proceso para todos los campos de las tablas que hemos cargado de Databricks. El resultado debería ser el siguiente:
 
 ![Opción S3 Aws](./img/img_28.png)
 
-Una vez completado este procedimiento, vamos a publicar el lienzo en nuestra versión web de Power BI. Para ello, haremos clic en la opción **Publish** del menú superior.
+Una vez completado este procedimiento, vamos a publicar el el proyecto en la versión web de Power BI. Para ello, haremos clic en la opción **Publish** del menú superior.
 
-Una vez autenticados, nos debería mostrar un modal como el siguiente, indicando que los cambios se estan publicando.
+Una vez nos hemos autenticados, nos debería mostrar un modal indicando que los cambios se están publicando.
 
 ![Opción S3 Aws](./img/img_30.png)
 
-Una vez finalizado este paso, podemos ver que se nos abre una página web en nuestro navegador, con el contenido que hemos creado.
+Una vez finalizado este paso, se nos abrirá la versión web de Power BI con nuestro proyecto.
 
 ![Opción S3 Aws](./img/img_31.png)
 
-Esto nos indica que nuestros cambios se han subido a la versión web de Power BI.
+Esto nos indica que nuestros cambios se han publicado correctamente.
